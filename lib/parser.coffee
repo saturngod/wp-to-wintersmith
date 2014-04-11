@@ -4,11 +4,23 @@ Parser = ->
   return this
 
 Parser.prototype.parse = (post) ->
+
+
+  tags = []
+  
+  if post["category"]
+    for category in post["category"]
+      if category["$"]['domain'] is "post_tag"
+        tags.push category["$"]['nicename']
+        
+    
   parsed =
     title: post.title[0].replace(':', '')
     filename: post["wp:post_name"]
     date: new Date(post.pubDate).toUTCString()
     content: to_markdown post['content:encoded'][0]
+    tags : tags
+
 
 Parser.prototype.globals = (input) ->
   obj = input.rss
@@ -17,6 +29,7 @@ Parser.prototype.globals = (input) ->
   parsed_authors = []
   for author in authors when author['wp:author_display_name'][0] isnt 'legacy'
     fullname = "#{author['wp:author_first_name']} #{author['wp:author_last_name']}"
+    fullname = author['wp:author_display_name'][0] if fullname is " "
     parsed_authors.push
       email: author['wp:author_email'][0]
       name: fullname
